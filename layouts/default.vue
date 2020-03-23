@@ -1,7 +1,9 @@
 <template>
-  <div>
-    <nuxt />
-  </div>
+  <el-row>
+    <el-col :span="24">
+      <nuxt />
+    </el-col>
+  </el-row>
 </template>
 
 <style>
