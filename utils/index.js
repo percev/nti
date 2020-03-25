@@ -1,7 +1,8 @@
 import localForage from 'localforage'
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-const STORE_LENGTH = 1000
+const GENERATE_TEXT_LIMIT = 10000
+const STORE_LENGTH = 10000000
 
 function randomCharCode () {
   const minChar = 0
@@ -14,21 +15,23 @@ function generateString () {
   for (let i = 0; i < 100; i++) {
     str += randomCharCode()
   }
-  return str
+  return [str[0], str]
 }
 
 function* generateText () {
-  for (let i = 0; i < STORE_LENGTH; i++) {
-    yield [String(i), generateString()]
+  for (let i = 0; i < GENERATE_TEXT_LIMIT; i++) {
+    yield [...generateString()]
   }
 }
 
 async function checkStorage () {
-  return await localForage.length().then(function(numberOfKeys) {
-    return numberOfKeys
+  let length = 0
+  await localForage.iterate(function(value) {
+    length += value.length
   }).catch(function(err) {
     console.log(err)
   });
+  return length
 }
 
 async function clearStorage () {
@@ -39,13 +42,35 @@ async function clearStorage () {
   });
 }
 
+function dublicateStore () {
+  localForage.iterate( function(value, key) {
+    if (value.length < 135000) {
+      value.push(...value)
+      localForage.setItem(key, value)
+    }
+  }).catch(function(err) {
+    console.log(err)
+  });
+}
+
 export async function generateStorage () {
   try {
-    const storeLength = await checkStorage()
+    let storeLength = await checkStorage()
     if (storeLength < STORE_LENGTH) {
-      await clearStorage()
       for (let value of generateText()) {
-        await localForage.setItem(value[0], value[1])
+        const item = await localForage.getItem(value[0])
+        if (item) {
+          item.push(value[1])
+          await localForage.setItem(value[0],item)
+        } else {
+          await localForage.setItem(value[0], [value[1]])
+        }
+      }
+
+      while (storeLength < STORE_LENGTH) {
+        dublicateStore()
+        storeLength = await checkStorage()
+        console.log('storeLength', storeLength)
       }
     }
   } catch (err) {
@@ -54,12 +79,16 @@ export async function generateStorage () {
 }
 
 export async function getStorage() {
-  const storage = []
-  return await localForage.iterate(function(value) {
-    storage.push(value)
+  const storage = {}
+  return await localForage.iterate(function(value, key) {
+    storage[key] = value.sort()
   }).then(function() {
     return storage
   }).catch(function(err) {
     console.log(err)
   });
+}
+
+export function linearSearch (list, str) {
+  return Array.isArray(list) && list.length > 0 ? list.filter(el =>  el.indexOf(str) === 0).length : 0
 }

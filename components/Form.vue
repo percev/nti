@@ -19,7 +19,7 @@
       Ищи
     </Button>
     <div v-if="result > 0 && !loading" class="search-form__result">
-      {{ `Найдено ${ result } совпадения` }}
+      {{ `Найдено ${ result } совпадения за ${searchTime} мс` }}
     </div>
     <div v-else-if="result === 0 && !loading" class="search-form__result">
       {{ 'Ничего не найдено' }}
@@ -44,7 +44,8 @@
           rules: {
             text: [{ required: true, message: 'Введите строку поиска', trigger: 'blur' }]
           },
-          loading: false
+          loading: false,
+          searchTime: 0
         }
       },
       computed: {
@@ -57,12 +58,15 @@
           this.$refs.form.validate(async (valid) => {
             if (valid) {
               this.loading = true
+              const startSearchTime = Date.now()
               const result = await this.$store.dispatch('findResults', this.form.text)
-              if (result) {
-                this.result = result
+              if (result === null) {
+                this.$message.error('Ошибка при выполнении запроса')
               } else {
-                this.result = 0
+                this.result = result
               }
+              this.searchTime = Date.now() - startSearchTime
+              console.log('text', this.form.text, 'res', result, 'time', this.searchTime)
               this.loading = false
             } else {
               return false

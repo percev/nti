@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { generateStorage, getStorage } from '@/utils/index'
+import { generateStorage, getStorage, linearSearch } from '@/utils/index'
 
 Vue.use(Vuex)
 
@@ -29,9 +29,12 @@ const store = () => new Vuex.Store({
       commit('setAppState', false)
     },
     findResults ({getters}, str) {
-      let result = 0
-      result = getters.storage.filter(el => el.indexOf(str) === 0).length
-      return result
+      try {
+        return linearSearch(getters.storage[str[0]], str)
+      } catch (e){
+        console.log('error', e)
+        return null
+      }
     }
   }
 })
