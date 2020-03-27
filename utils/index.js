@@ -89,6 +89,36 @@ export async function getStorage() {
   });
 }
 
+export function timer () {
+  const timestamp = Date.now()
+  return () => Date.now()- timestamp
+}
+
+export function binarySearch (list, str) {
+  if (list.length === 0) {
+    return 0
+  }
+  else if (list.length === 1) {
+    return list[0].indexOf(str) === 0 ? 1 : 0
+  }
+
+  let counter = 0
+  let middle = Math.floor((list.length) / 2)
+
+  if (list[middle].indexOf(str) === 0) {
+    counter ++
+    counter += binarySearch(list.slice(0, middle), str) + binarySearch(list.slice(middle + 1), str)
+  }
+  else if (list[middle].slice(0, str.length) > str) {
+    counter += binarySearch(list.slice(0, middle), str)
+  }
+  else {
+    counter += binarySearch(list.slice(middle + 1), str)
+  }
+
+  return counter
+}
+
 export function linearSearch (list, str) {
   return Array.isArray(list) && list.length > 0 ? list.filter(el =>  el.indexOf(str) === 0).length : 0
 }

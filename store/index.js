@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import { generateStorage, getStorage, linearSearch } from '@/utils/index'
+import {binarySearch, generateStorage, getStorage, linearSearch, timer } from '@/utils/index'
 
 Vue.use(Vuex)
 
@@ -30,7 +30,18 @@ const store = () => new Vuex.Store({
     },
     findResults ({getters}, str) {
       try {
-        return linearSearch(getters.storage[str[0]], str)
+        let timestamp1 = timer()
+        const binarySearchResult = binarySearch(getters.storage[str[0]], str)
+        timestamp1 = timestamp1()
+        let timestamp2 = timer()
+        const linearSearchResult = linearSearch(getters.storage[str[0]], str)
+        timestamp2 = timestamp2()
+        return {
+          'bSearchRes': binarySearchResult,
+          'bSearchTime': timestamp1,
+          'lSearchRes': linearSearchResult,
+          'lSearchTime': timestamp2
+        }
       } catch (e){
         console.log('error', e)
         return null
